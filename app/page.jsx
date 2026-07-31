@@ -44,7 +44,7 @@ export default function Page() {
   useEffect(() => { youtubeManager.init(); }, []);
 
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-[#05070a] text-ink">
+    <main className="relative h-[100dvh] w-screen overflow-hidden bg-[#05070a] text-ink">
       <BackgroundScene />
       <div className="pointer-events-none fixed inset-0 z-[1] bg-[radial-gradient(120%_90%_at_50%_0%,transparent_40%,rgba(5,7,10,.6))]" />
       <div className="relative z-10 h-full">
