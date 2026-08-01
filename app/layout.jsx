@@ -6,7 +6,7 @@ const sans = Manrope({ subsets: ['latin'], weight: ['300','400','500','600','700
 const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400','500'], variable: '--font-mono' });
 
 export const metadata = {
-  title: 'ETHERIX — Personal Sound Sanctuary',
+  title: 'VRX Music — Personal Sound Sanctuary',
   description: 'Continuous background music stream with procedural WebGL atmospheres, paired with INDRISMA, a minimal movie tracker.',
 };
 

@@ -7,6 +7,9 @@ import { img, imgOrig, providers, tvProviders } from '@/lib/tmdbApi';
 import { drawer } from '@/lib/motion';
 import { exportLists, importLists } from '@/lib/storage';
 
+/* ================================================================
+   STARS
+   ================================================================ */
 function Stars({ value, onChange }) {
   return (
     <div className="flex gap-0.5">
@@ -19,6 +22,47 @@ function Stars({ value, onChange }) {
   );
 }
 
+/* ================================================================
+   CLOUD SYNC BUTTON
+   ================================================================ */
+function CloudSyncButton() {
+  const syncKey = useStore((s) => s.syncKey);
+  const setSyncKey = useStore((s) => s.setSyncKey);
+  const pullFromCloud = useStore((s) => s.pullFromCloud);
+  const generateSyncKey = useStore((s) => s.generateSyncKey);
+  const setToast = useStore((s) => s.setToast);
+
+  const handleSetKey = () => {
+    const key = window.prompt('Enter your sync key (or leave blank to generate one):', syncKey);
+    if (key === null) return; // cancelled
+    if (key.trim()) {
+      setSyncKey(key.trim());
+      pullFromCloud().then(() => setToast('Synced from cloud'));
+    } else {
+      const newKey = generateSyncKey();
+      setToast(`Your sync key: ${newKey}`);
+      window.prompt('Copy this key to use on other devices:', newKey);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleSetKey}
+      title={syncKey ? `Sync key: ${syncKey}` : 'Enable cloud sync'}
+      className={`grid h-8 w-8 place-items-center rounded-md border transition ${syncKey ? 'border-accent/40 text-accent' : 'border-white/10 text-dim hover:text-accent'}`}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        <polyline points="16 2 22 2 22 8"/>
+        <line x1="22" y1="2" x2="11" y2="13"/>
+      </svg>
+    </button>
+  );
+}
+
+/* ================================================================
+   MOVIE / TV ROW
+   ================================================================ */
 function Row({ m, list }) {
   const setRating = useStore((s) => s.setRating);
   const removeMovie = useStore((s) => s.removeMovie);
@@ -63,6 +107,9 @@ function Row({ m, list }) {
   );
 }
 
+/* ================================================================
+   MAIN DRAWER
+   ================================================================ */
 export default function MovieDrawer() {
   const open = useStore((s) => s.trackerOpen);
   const setOpen = useStore((s) => s.setTrackerOpen);
@@ -87,18 +134,22 @@ export default function MovieDrawer() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
           <motion.aside variants={drawer} initial="hidden" animate="show" exit="hidden"
             className="glass thin-scroll fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col overflow-y-auto">
+            
+            {/* HEADER */}
             <div className="flex items-center justify-between border-b border-white/8 p-5">
               <div>
                 <div className="font-display text-lg tracking-[0.2em] text-accent">INDRISMA</div>
                 <div className="text-[11px] uppercase tracking-[0.2em] text-faint">my lists</div>
               </div>
               <div className="flex items-center gap-2">
+                <CloudSyncButton />
                 <button onClick={() => exportLists({ watchlist, watched })} title="Export" className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim hover:text-accent"><Download size={15} /></button>
                 <label title="Import" className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-white/10 text-dim hover:text-accent"><Upload size={15} /><input type="file" accept="application/json" className="hidden" onChange={onImport} /></label>
                 <button onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim hover:text-ink"><X size={15} /></button>
               </div>
             </div>
 
+            {/* TABS */}
             <div className="flex gap-2 p-4">
               {['watchlist', 'watched'].map((t) => (
                 <button key={t} onClick={() => setTab(t)}
@@ -108,6 +159,7 @@ export default function MovieDrawer() {
               ))}
             </div>
 
+            {/* LIST */}
             <div className="px-5 pb-8">
               {list.length ? list.map((m) => <Row key={`${m.mediaType || 'movie'}-${m.id}`} m={m} list={tab} />)
                 : <p className="py-10 text-center text-sm text-faint">Nothing here yet — add movies or shows from the INDRISMA view.</p>}
