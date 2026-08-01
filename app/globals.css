@@ -32,3 +32,10 @@ input[type='range']::-moz-range-thumb {
 .thin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 8px; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes dewDrop {
+  0% { transform: translateY(-10px) scale(1); opacity: 0; }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.5; }
+  100% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+}

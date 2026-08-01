@@ -41,7 +41,15 @@ function FilmToggle() {
 
 export default function Page() {
   const view = useStore((s) => s.view);
-  useEffect(() => { youtubeManager.init(); }, []);
+
+  useEffect(() => {
+    youtubeManager.init();
+    // Autoplay lofi after a short delay so the YT script can load
+    const t = setTimeout(() => {
+      youtubeManager.playChannel('lofi');
+    }, 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-[#05070a] text-ink">
