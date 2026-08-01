@@ -1,15 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star, Trash2, Download, Upload, Tv } from 'lucide-react';
+import { X, Star, Trash2, Download, Upload, Tv, RefreshCw } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { img, imgOrig, providers, tvProviders } from '@/lib/tmdbApi';
 import { drawer } from '@/lib/motion';
 import { exportLists, importLists } from '@/lib/storage';
 
-/* ================================================================
-   STARS
-   ================================================================ */
 function Stars({ value, onChange }) {
   return (
     <div className="flex gap-0.5">
@@ -22,9 +19,6 @@ function Stars({ value, onChange }) {
   );
 }
 
-/* ================================================================
-   CLOUD SYNC BUTTON
-   ================================================================ */
 function CloudSyncButton() {
   const syncKey = useStore((s) => s.syncKey);
   const setSyncKey = useStore((s) => s.setSyncKey);
@@ -34,7 +28,7 @@ function CloudSyncButton() {
 
   const handleSetKey = () => {
     const key = window.prompt('Enter your sync key (or leave blank to generate one):', syncKey);
-    if (key === null) return; // cancelled
+    if (key === null) return;
     if (key.trim()) {
       setSyncKey(key.trim());
       pullFromCloud().then(() => setToast('Synced from cloud'));
@@ -60,9 +54,29 @@ function CloudSyncButton() {
   );
 }
 
-/* ================================================================
-   MOVIE / TV ROW
-   ================================================================ */
+function RefreshButton() {
+  const pullFromCloud = useStore((s) => s.pullFromCloud);
+  const setToast = useStore((s) => s.setToast);
+  const [spinning, setSpinning] = useState(false);
+
+  const handleRefresh = async () => {
+    setSpinning(true);
+    await pullFromCloud();
+    setSpinning(false);
+    setToast('Lists refreshed');
+  };
+
+  return (
+    <button
+      onClick={handleRefresh}
+      title="Refresh from cloud"
+      className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim transition hover:text-accent"
+    >
+      <RefreshCw size={15} className={spinning ? 'animate-spin' : ''} />
+    </button>
+  );
+}
+
 function Row({ m, list }) {
   const setRating = useStore((s) => s.setRating);
   const removeMovie = useStore((s) => s.removeMovie);
@@ -107,9 +121,6 @@ function Row({ m, list }) {
   );
 }
 
-/* ================================================================
-   MAIN DRAWER
-   ================================================================ */
 export default function MovieDrawer() {
   const open = useStore((s) => s.trackerOpen);
   const setOpen = useStore((s) => s.setTrackerOpen);
@@ -135,7 +146,6 @@ export default function MovieDrawer() {
           <motion.aside variants={drawer} initial="hidden" animate="show" exit="hidden"
             className="glass thin-scroll fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col overflow-y-auto">
             
-            {/* HEADER */}
             <div className="flex items-center justify-between border-b border-white/8 p-5">
               <div>
                 <div className="font-display text-lg tracking-[0.2em] text-accent">INDRISMA</div>
@@ -143,13 +153,13 @@ export default function MovieDrawer() {
               </div>
               <div className="flex items-center gap-2">
                 <CloudSyncButton />
+                <RefreshButton />
                 <button onClick={() => exportLists({ watchlist, watched })} title="Export" className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim hover:text-accent"><Download size={15} /></button>
                 <label title="Import" className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-white/10 text-dim hover:text-accent"><Upload size={15} /><input type="file" accept="application/json" className="hidden" onChange={onImport} /></label>
                 <button onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim hover:text-ink"><X size={15} /></button>
               </div>
             </div>
 
-            {/* TABS */}
             <div className="flex gap-2 p-4">
               {['watchlist', 'watched'].map((t) => (
                 <button key={t} onClick={() => setTab(t)}
@@ -159,7 +169,6 @@ export default function MovieDrawer() {
               ))}
             </div>
 
-            {/* LIST */}
             <div className="px-5 pb-8">
               {list.length ? list.map((m) => <Row key={`${m.mediaType || 'movie'}-${m.id}`} m={m} list={tab} />)
                 : <p className="py-10 text-center text-sm text-faint">Nothing here yet — add movies or shows from the INDRISMA view.</p>}

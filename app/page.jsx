@@ -32,7 +32,7 @@ function FilmToggle() {
   const setView = useStore((s) => s.setView);
   const isMusic = view === 'music';
   return (
-    <button onClick={() => setView(isMusic ? 'movies' : 'music')} title={isMusic ? 'Open INDRISMA' : 'Back to ETHERIX'}
+    <button onClick={() => setView(isMusic ? 'movies' : 'music')} title={isMusic ? 'Open INDRISMA' : 'Back to VRX Music'}
       className="glass absolute bottom-24 right-7 z-30 grid h-[54px] w-[54px] place-items-center rounded-full text-dim transition hover:scale-105 hover:text-accent">
       {isMusic ? <Film size={22} /> : <Waves size={22} />}
     </button>
@@ -44,11 +44,16 @@ export default function Page() {
 
   useEffect(() => {
     youtubeManager.init();
-    // Autoplay lofi after a short delay so the YT script can load
-    const t = setTimeout(() => {
-      youtubeManager.playChannel('lofi');
-    }, 1500);
+    const t = setTimeout(() => youtubeManager.playChannel('lofi'), 1500);
     return () => clearTimeout(t);
+  }, []);
+
+  // 🔑 AUTO-PULL FROM CLOUD ON LOAD
+  useEffect(() => {
+    const { syncKey, pullFromCloud } = useStore.getState();
+    if (syncKey) {
+      pullFromCloud();
+    }
   }, []);
 
   return (
