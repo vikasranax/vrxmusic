@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star, Trash2, Download, Upload, Tv, RefreshCw } from 'lucide-react';
+import { X, Star, Trash2, Download, Upload, Tv, RefreshCw, Copy, KeyRound, ChevronDown } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { img, imgOrig, providers, tvProviders } from '@/lib/tmdbApi';
 import { drawer } from '@/lib/motion';
@@ -19,38 +19,87 @@ function Stars({ value, onChange }) {
   );
 }
 
-function CloudSyncButton() {
+function KeyManager() {
   const syncKey = useStore((s) => s.syncKey);
+  const knownKeys = useStore((s) => s.knownKeys);
   const setSyncKey = useStore((s) => s.setSyncKey);
+  const setKeyLabel = useStore((s) => s.setKeyLabel);
+  const removeKnownKey = useStore((s) => s.removeKnownKey);
   const pullFromCloud = useStore((s) => s.pullFromCloud);
   const generateSyncKey = useStore((s) => s.generateSyncKey);
   const setToast = useStore((s) => s.setToast);
+  const [showRing, setShowRing] = useState(false);
 
-  const handleSetKey = () => {
-    const key = window.prompt('Enter your sync key (or leave blank to generate one):', syncKey);
+  const copyKey = () => {
+    if (!syncKey) return;
+    navigator.clipboard.writeText(syncKey);
+    setToast('Key copied to clipboard');
+  };
+
+  const handleNewKey = () => {
+    const key = window.prompt('Enter sync key (or leave blank to generate new):', syncKey);
     if (key === null) return;
     if (key.trim()) {
       setSyncKey(key.trim());
-      pullFromCloud().then(() => setToast('Synced from cloud'));
+      pullFromCloud().then(() => setToast('Synced'));
     } else {
       const newKey = generateSyncKey();
-      setToast(`Your sync key: ${newKey}`);
-      window.prompt('Copy this key to use on other devices:', newKey);
+      setToast(`New key: ${newKey}`);
+      window.prompt('Save this key somewhere safe:', newKey);
     }
   };
 
   return (
-    <button
-      onClick={handleSetKey}
-      title={syncKey ? `Sync key: ${syncKey}` : 'Enable cloud sync'}
-      className={`grid h-8 w-8 place-items-center rounded-md border transition ${syncKey ? 'border-accent/40 text-accent' : 'border-white/10 text-dim hover:text-accent'}`}
-    >
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-        <polyline points="16 2 22 2 22 8"/>
-        <line x1="22" y1="2" x2="11" y2="13"/>
-      </svg>
-    </button>
+    <div className="border-b border-white/8 p-4">
+      {/* Current key */}
+      <div className="flex items-center gap-2">
+        <KeyRound size={14} className="text-accent" />
+        <span className="text-[11px] uppercase tracking-wider text-faint">Sync Key</span>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <code className="flex-1 truncate rounded-md bg-white/5 px-3 py-1.5 text-xs text-ink font-mono">
+          {syncKey || 'Not set'}
+        </code>
+        <button onClick={copyKey} disabled={!syncKey} title="Copy key" className="grid h-7 w-7 place-items-center rounded-md border border-white/10 text-dim transition hover:text-accent disabled:opacity-30">
+          <Copy size={13} />
+        </button>
+        <button onClick={handleNewKey} title="New / Enter key" className="grid h-7 w-7 place-items-center rounded-md border border-white/10 text-dim transition hover:text-accent">
+          <RefreshCw size={13} />
+        </button>
+      </div>
+
+      {/* Key Ring */}
+      {knownKeys.length > 0 && (
+        <div className="mt-3">
+          <button onClick={() => setShowRing((s) => !s)} className="flex items-center gap-1.5 text-[11px] text-dim transition hover:text-ink">
+            <span>Saved keys ({knownKeys.length})</span>
+            <ChevronDown size={12} className={`transition ${showRing ? 'rotate-180' : ''}`} />
+          </button>
+          <AnimatePresence>
+            {showRing && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {knownKeys.map((k) => (
+                    <div key={k.key} className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-xs ${k.key === syncKey ? 'bg-accent/10 border border-accent/30' : 'bg-white/5 border border-transparent'}`}>
+                      <button onClick={() => { setSyncKey(k.key); pullFromCloud().then(() => setToast('Switched key')); }} className="min-w-0 flex-1 truncate text-left font-mono text-ink hover:text-accent">
+                        {k.label ? `${k.label} · ` : ''}{k.key}
+                      </button>
+                      <input
+                        value={k.label}
+                        onChange={(e) => setKeyLabel(k.key, e.target.value)}
+                        placeholder="label"
+                        className="w-16 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-dim placeholder:text-faint focus:outline-none"
+                      />
+                      <button onClick={() => removeKnownKey(k.key)} className="text-faint hover:text-red-300"><X size={11} /></button>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -67,11 +116,7 @@ function RefreshButton() {
   };
 
   return (
-    <button
-      onClick={handleRefresh}
-      title="Refresh from cloud"
-      className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim transition hover:text-accent"
-    >
+    <button onClick={handleRefresh} title="Refresh from cloud" className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim transition hover:text-accent">
       <RefreshCw size={15} className={spinning ? 'animate-spin' : ''} />
     </button>
   );
@@ -146,13 +191,13 @@ export default function MovieDrawer() {
           <motion.aside variants={drawer} initial="hidden" animate="show" exit="hidden"
             className="glass thin-scroll fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col overflow-y-auto">
             
+            {/* Header */}
             <div className="flex items-center justify-between border-b border-white/8 p-5">
               <div>
                 <div className="font-display text-lg tracking-[0.2em] text-accent">INDRISMA</div>
                 <div className="text-[11px] uppercase tracking-[0.2em] text-faint">my lists</div>
               </div>
               <div className="flex items-center gap-2">
-                <CloudSyncButton />
                 <RefreshButton />
                 <button onClick={() => exportLists({ watchlist, watched })} title="Export" className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-dim hover:text-accent"><Download size={15} /></button>
                 <label title="Import" className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-white/10 text-dim hover:text-accent"><Upload size={15} /><input type="file" accept="application/json" className="hidden" onChange={onImport} /></label>
@@ -160,6 +205,10 @@ export default function MovieDrawer() {
               </div>
             </div>
 
+            {/* Key Manager */}
+            <KeyManager />
+
+            {/* Tabs */}
             <div className="flex gap-2 p-4">
               {['watchlist', 'watched'].map((t) => (
                 <button key={t} onClick={() => setTab(t)}
@@ -169,6 +218,7 @@ export default function MovieDrawer() {
               ))}
             </div>
 
+            {/* List */}
             <div className="px-5 pb-8">
               {list.length ? list.map((m) => <Row key={`${m.mediaType || 'movie'}-${m.id}`} m={m} list={tab} />)
                 : <p className="py-10 text-center text-sm text-faint">Nothing here yet — add movies or shows from the INDRISMA view.</p>}
