@@ -1,11 +1,10 @@
 'use client';
-import { Play, Pause, SkipForward, Volume2, VolumeX } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Play, Pause, SkipForward, Volume2, VolumeX, Plus, Film } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { CHANNELS } from '@/lib/playlistData';
 import youtubeManager from '@/lib/youtubeManager';
 
-export default function Player({ onAdd }) {
+export default function Player() {
   const status = useStore((s) => s.status);
   const volume = useStore((s) => s.volume);
   const muted = useStore((s) => s.muted);
@@ -13,43 +12,76 @@ export default function Player({ onAdd }) {
   const channelId = useStore((s) => s.currentChannelId);
   const setVolume = useStore((s) => s.setVolume);
   const setMuted = useStore((s) => s.setMuted);
+  const setPanelOpen = useStore((s) => s.setPanelOpen);
 
   const playing = status === 'playing' || status === 'loading';
 
-  const onVol = (e) => { const v = +e.target.value; setVolume(v); setMuted(v === 0); youtubeManager.setVolume(v); };
-  const onMute = () => { const m = !muted; setMuted(m); youtubeManager.applyMute(m); };
+  const onVol = (e) => {
+    const v = +e.target.value;
+    setVolume(v);
+    setMuted(v === 0);
+    youtubeManager.setVolume(v);
+  };
+  const onMute = () => {
+    const m = !muted;
+    setMuted(m);
+    youtubeManager.applyMute(m);
+  };
 
   return (
-    <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className="glass absolute inset-x-0 bottom-0 z-20 flex items-center gap-3 px-3 py-3 sm:gap-4 sm:px-6">
-      <button onClick={() => youtubeManager.togglePlay()} className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-ink transition hover:border-accent/50 sm:h-[46px] sm:w-[46px]">
-        {playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+    <div className="glass absolute inset-x-0 bottom-0 z-20 flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
+      <button
+        onClick={() => youtubeManager.togglePlay()}
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5 text-ink transition hover:bg-white/10 sm:h-11 sm:w-11"
+      >
+        {playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
       </button>
-      <button onClick={() => youtubeManager.next()} className="shrink-0 text-dim transition hover:text-ink"><SkipForward size={18} /></button>
+
+      <button onClick={() => youtubeManager.next()} className="shrink-0 text-[#4a5568] transition hover:text-[#8a97a6]">
+        <SkipForward size={18} />
+      </button>
 
       <div className="min-w-0">
-        <div className="max-w-[140px] truncate text-xs font-bold sm:max-w-[180px] sm:text-sm">{track.title}</div>
-        <div className="mt-0.5 flex items-center gap-2 text-[10px] text-faint sm:mt-1 sm:text-xs"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent shadow-[0_0_8px_#34e1d6]" />{track.badge}</div>
+        <div className="max-w-[160px] truncate text-xs font-semibold text-[#c7d0da] sm:max-w-[240px] sm:text-sm">
+          {track.title}
+        </div>
+        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-[#4a5568] sm:text-xs">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#34e1d6]" />
+          {track.badge}
+        </div>
       </div>
 
-      {/* pills: horizontally scrollable on mobile */}
-      <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto pb-1">
+      <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto py-1">
         {CHANNELS.map((c) => (
-          <button key={c.id} onClick={() => youtubeManager.playChannel(c.id)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-semibold transition sm:px-4 sm:py-2 sm:text-xs
-            ${c.id === channelId ? 'bg-accent text-accent-ink' : 'bg-white/5 text-dim hover:text-ink'}`}>{c.name}</button>
+          <button
+            key={c.id}
+            onClick={() => youtubeManager.playChannel(c.id)}
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-semibold transition sm:px-4 sm:py-2 sm:text-xs
+            ${c.id === channelId ? 'bg-[#34e1d6] text-[#04181a]' : 'bg-white/5 text-[#4a5568] hover:bg-white/10 hover:text-[#8a97a6]'}`}
+          >
+            {c.name}
+          </button>
         ))}
       </div>
 
-      <button onClick={onAdd} title="Custom stream" className="hidden h-[34px] w-[34px] shrink-0 place-items-center rounded-full border border-white/10 text-dim transition hover:text-accent sm:grid">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+      <button
+        onClick={() => setPanelOpen(true)}
+        title="Movies & Watchlist"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/5 bg-white/5 text-[#4a5568] transition hover:border-[#34e1d6]/30 hover:text-[#34e1d6] sm:h-10 sm:w-10"
+      >
+        <Film size={16} />
       </button>
 
-      {/* volume: hidden on small phones, shown on sm+ */}
-      <div className="hidden items-center gap-2.5 text-dim sm:flex">
-        <button onClick={onMute}>{muted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
-        <input type="range" min={0} max={100} value={muted ? 0 : volume} onChange={onVol} className="w-24 sm:w-28" />
+      <button onClick={() => {}} title="Add custom" className="hidden h-8 w-8 shrink-0 place-items-center rounded-full text-[#4a5568] transition hover:text-ink sm:grid">
+        <Plus size={16} />
+      </button>
+
+      <div className="hidden items-center gap-2 text-[#4a5568] sm:flex">
+        <button onClick={onMute}>
+          {muted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+        <input type="range" min={0} max={100} value={muted ? 0 : volume} onChange={onVol} className="w-20 sm:w-28" />
       </div>
-    </motion.div>
+    </div>
   );
 }
