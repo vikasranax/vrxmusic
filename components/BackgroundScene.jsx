@@ -25,8 +25,7 @@ function buildOcean(scene, camera, renderer) {
     color: 0x155e75, shininess: 90, specular: 0x4f8cff,
     transparent: true, opacity: 0.95, flatShading: false,
   });
-  const mesh = new THREE.Mesh(geo, mat);
-  scene.add(mesh);
+  scene.add(new THREE.Mesh(geo, mat));
 
   let t = 0, raf = 0;
   function frame() {
@@ -34,8 +33,7 @@ function buildOcean(scene, camera, renderer) {
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = base[i * 3], z = base[i * 3 + 2];
-      const y = Math.sin(x * 0.25 + t) * 0.8 + Math.cos(z * 0.18 + t * 0.7) * 0.6 + Math.sin((x + z) * 0.12 + t * 1.1) * 0.35;
-      pos.array[i * 3 + 1] = y;
+      pos.array[i * 3 + 1] = Math.sin(x * 0.25 + t) * 0.8 + Math.cos(z * 0.18 + t * 0.7) * 0.6 + Math.sin((x + z) * 0.12 + t * 1.1) * 0.35;
     }
     pos.needsUpdate = true;
     renderer.render(scene, camera);
@@ -52,15 +50,16 @@ function buildRiver(scene, camera, renderer) {
   scene.background = new THREE.Color(0x06222e);
   scene.fog = new THREE.FogExp2(0x06222e, 0.040);
 
-  scene.add(new THREE.DirectionalLight(0x34e1d6, 0.7).position.set(5, 10, 5));
+  const dl = new THREE.DirectionalLight(0x34e1d6, 0.7);
+  dl.position.set(5, 10, 5);
+  scene.add(dl);
   scene.add(new THREE.AmbientLight(0x112233, 0.5));
 
   const geo = new THREE.PlaneGeometry(50, 40, 120, 80);
   geo.rotateX(-Math.PI / 2);
   const base = new Float32Array(geo.attributes.position.array);
   const mat = new THREE.MeshPhongMaterial({ color: 0x1f6f8b, shininess: 70, specular: 0x34e1d6, transparent: true, opacity: 0.92 });
-  const mesh = new THREE.Mesh(geo, mat);
-  scene.add(mesh);
+  scene.add(new THREE.Mesh(geo, mat));
 
   let t = 0, raf = 0;
   function frame() {
@@ -68,8 +67,7 @@ function buildRiver(scene, camera, renderer) {
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = base[i * 3], z = base[i * 3 + 2];
-      const y = Math.sin(x * 0.3 + t) * 0.5 + Math.cos(z * 0.25 + t * 0.9) * 0.4 + Math.sin(z * 0.5 + t * 1.3) * 0.2;
-      pos.array[i * 3 + 1] = y;
+      pos.array[i * 3 + 1] = Math.sin(x * 0.3 + t) * 0.5 + Math.cos(z * 0.25 + t * 0.9) * 0.4 + Math.sin(z * 0.5 + t * 1.3) * 0.2;
     }
     pos.needsUpdate = true;
     renderer.render(scene, camera);
@@ -86,17 +84,16 @@ function buildForest(scene, camera, renderer) {
   scene.background = new THREE.Color(0x06180f);
   scene.fog = new THREE.FogExp2(0x06180f, 0.055);
 
-  scene.add(new THREE.DirectionalLight(0x3f8f3f, 0.6).position.set(6, 10, 4));
+  const dl = new THREE.DirectionalLight(0x3f8f3f, 0.6);
+  dl.position.set(6, 10, 4);
+  scene.add(dl);
   scene.add(new THREE.AmbientLight(0x0a1a0c, 0.7));
 
-  // Ground
   const gGeo = new THREE.PlaneGeometry(80, 60, 64, 64);
   gGeo.rotateX(-Math.PI / 2);
   const gMat = new THREE.MeshLambertMaterial({ color: 0x1a4a2a });
-  const ground = new THREE.Mesh(gGeo, gMat);
-  scene.add(ground);
+  scene.add(new THREE.Mesh(gGeo, gMat));
 
-  // Trees (instanced cones)
   const tGeo = new THREE.ConeGeometry(0.35, 1.4, 7);
   const tMat = new THREE.MeshLambertMaterial({ color: 0x1f7a4d });
   const trees = new THREE.InstancedMesh(tGeo, tMat, 180);
@@ -110,7 +107,6 @@ function buildForest(scene, camera, renderer) {
   }
   scene.add(trees);
 
-  // Fireflies
   const fGeo = new THREE.BufferGeometry();
   const fn = 120, fp = new Float32Array(fn * 3);
   for (let i = 0; i < fn; i++) { fp[i * 3] = (Math.random() - 0.5) * 50; fp[i * 3 + 1] = Math.random() * 6 + 0.5; fp[i * 3 + 2] = (Math.random() - 0.5) * 40; }
@@ -136,52 +132,15 @@ function buildForest(scene, camera, renderer) {
   return () => { cancelAnimationFrame(raf); gGeo.dispose(); gMat.dispose(); tGeo.dispose(); tMat.dispose(); trees.dispose(); fGeo.dispose(); fMat.dispose(); };
 }
 
-function buildValley(scene, camera, renderer) {
-  camera.position.set(0, 4, 11);
-  camera.lookAt(0, 0, 0);
-  scene.background = new THREE.Color(0x0a1a0c);
-  scene.fog = new THREE.FogExp2(0x0a1a0c, 0.045);
-
-  scene.add(new THREE.DirectionalLight(0x8fff8f, 0.5).position.set(4, 10, 6));
-  scene.add(new THREE.AmbientLight(0x0f2a10, 0.6));
-
-  const geo = new THREE.PlaneGeometry(70, 50, 100, 80);
-  geo.rotateX(-Math.PI / 2.1);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.array[i * 3], z = pos.array[i * 3 + 2];
-    pos.array[i * 3 + 1] = Math.sin(x * 0.15) * Math.cos(z * 0.12) * 2.5 + Math.sin(x * 0.08 + z * 0.08) * 1.2;
-  }
-  pos.needsUpdate = true;
-  const mat = new THREE.MeshLambertMaterial({ color: 0x3f8f3f, flatShading: true });
-  const mesh = new THREE.Mesh(geo, mat);
-  scene.add(mesh);
-
-  // Flowers / bright spots
-  const pGeo = new THREE.BufferGeometry();
-  const pn = 60, pp = new Float32Array(pn * 3);
-  for (let i = 0; i < pn; i++) { pp[i * 3] = (Math.random() - 0.5) * 50; pp[i * 3 + 1] = Math.random() * 0.5 + 0.2; pp[i * 3 + 2] = (Math.random() - 0.5) * 40; }
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-  const pMat = new THREE.PointsMaterial({ color: 0xffdd88, size: 0.18, transparent: true, opacity: 0.9 });
-  scene.add(new THREE.Points(pGeo, pMat));
-
-  let raf = 0;
-  function frame() {
-    renderer.render(scene, camera);
-    raf = requestAnimationFrame(frame);
-  }
-  frame();
-
-  return () => { cancelAnimationFrame(raf); geo.dispose(); mat.dispose(); pGeo.dispose(); pMat.dispose(); };
-}
-
 function buildMountain(scene, camera, renderer) {
   camera.position.set(0, 4, 10);
   camera.lookAt(0, 1, 0);
   scene.background = new THREE.Color(0x0a1018);
   scene.fog = new THREE.FogExp2(0x0a1018, 0.038);
 
-  scene.add(new THREE.DirectionalLight(0xcceeff, 0.8).position.set(5, 12, 8));
+  const dl = new THREE.DirectionalLight(0xcceeff, 0.8);
+  dl.position.set(5, 12, 8);
+  scene.add(dl);
   scene.add(new THREE.AmbientLight(0x1a2028, 0.5));
 
   const geo = new THREE.PlaneGeometry(60, 40, 80, 60);
@@ -189,15 +148,12 @@ function buildMountain(scene, camera, renderer) {
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.array[i * 3], z = pos.array[i * 3 + 2];
-    const h = Math.abs(Math.sin(x * 0.2) * Math.cos(z * 0.15)) * 4 + Math.sin(x * 0.5 + z * 0.3) * 0.5;
-    pos.array[i * 3 + 1] = h;
+    pos.array[i * 3 + 1] = Math.abs(Math.sin(x * 0.2) * Math.cos(z * 0.15)) * 4 + Math.sin(x * 0.5 + z * 0.3) * 0.5;
   }
   pos.needsUpdate = true;
   const mat = new THREE.MeshStandardMaterial({ color: 0x9fb3c8, flatShading: true, roughness: 0.9 });
-  const mesh = new THREE.Mesh(geo, mat);
-  scene.add(mesh);
+  scene.add(new THREE.Mesh(geo, mat));
 
-  // Snow particles
   const sGeo = new THREE.BufferGeometry();
   const sn = 300, sp = new Float32Array(sn * 3);
   for (let i = 0; i < sn; i++) { sp[i * 3] = (Math.random() - 0.5) * 60; sp[i * 3 + 1] = Math.random() * 20; sp[i * 3 + 2] = (Math.random() - 0.5) * 40; }
@@ -228,15 +184,16 @@ function buildGlacier(scene, camera, renderer) {
   scene.background = new THREE.Color(0x081820);
   scene.fog = new THREE.FogExp2(0x081820, 0.045);
 
-  scene.add(new THREE.DirectionalLight(0xaaddff, 0.9).position.set(4, 10, 6));
+  const dl = new THREE.DirectionalLight(0xaaddff, 0.9);
+  dl.position.set(4, 10, 6);
+  scene.add(dl);
   scene.add(new THREE.AmbientLight(0x112228, 0.5));
 
   const geo = new THREE.PlaneGeometry(60, 40, 80, 60);
   geo.rotateX(-Math.PI / 2.15);
   const base = new Float32Array(geo.attributes.position.array);
   const mat = new THREE.MeshPhongMaterial({ color: 0x7fb7d6, shininess: 100, specular: 0xffffff, transparent: true, opacity: 0.9, flatShading: true });
-  const mesh = new THREE.Mesh(geo, mat);
-  scene.add(mesh);
+  scene.add(new THREE.Mesh(geo, mat));
 
   let t = 0, raf = 0;
   function frame() {
@@ -262,16 +219,15 @@ function buildRain(scene, camera, renderer) {
   scene.fog = new THREE.FogExp2(0x050a14, 0.060);
 
   scene.add(new THREE.AmbientLight(0x111122, 0.4));
-  scene.add(new THREE.DirectionalLight(0x446688, 0.3).position.set(0, 10, 0));
+  const dl = new THREE.DirectionalLight(0x446688, 0.3);
+  dl.position.set(0, 10, 0);
+  scene.add(dl);
 
-  // Wet ground
   const gGeo = new THREE.PlaneGeometry(80, 60, 64, 64);
   gGeo.rotateX(-Math.PI / 2);
   const gMat = new THREE.MeshPhongMaterial({ color: 0x0a1525, shininess: 100, specular: 0x223344 });
-  const ground = new THREE.Mesh(gGeo, gGeo);
-  scene.add(ground);
+  scene.add(new THREE.Mesh(gGeo, gMat));
 
-  // Rain drops
   const count = 3000;
   const rGeo = new THREE.BufferGeometry();
   const rPos = new Float32Array(count * 3);
@@ -282,8 +238,7 @@ function buildRain(scene, camera, renderer) {
   }
   rGeo.setAttribute('position', new THREE.BufferAttribute(rPos, 3));
   const rMat = new THREE.PointsMaterial({ color: 0x88aacc, size: 0.08, transparent: true, opacity: 0.5 });
-  const rain = new THREE.Points(rGeo, rMat);
-  scene.add(rain);
+  scene.add(new THREE.Points(rGeo, rMat));
 
   let raf = 0;
   function frame() {
@@ -299,6 +254,129 @@ function buildRain(scene, camera, renderer) {
   frame();
 
   return () => { cancelAnimationFrame(raf); gGeo.dispose(); gMat.dispose(); rGeo.dispose(); rMat.dispose(); };
+}
+
+/* ================================================================
+   CHANNEL BACKDROPS — Indian Bus & Alka silhouette (2D, lightweight)
+   ================================================================ */
+
+function BusBackground() {
+  return (
+    <div className="fixed inset-0 h-[100dvh] w-screen overflow-hidden" aria-hidden>
+      <style>{`
+        @keyframes bus-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+        @keyframes road-move { from { transform: translateX(0); } to { transform: translateX(-160px); } }
+        .bus-bounce { animation: bus-bounce .6s ease-in-out infinite; }
+        .road-move { animation: road-move .5s linear infinite; }
+      `}</style>
+      <svg className="h-full w-full" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="busSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#160b05" />
+            <stop offset="0.55" stopColor="#6e3410" />
+            <stop offset="0.8" stopColor="#d97b2e" />
+            <stop offset="1" stopColor="#3a1c0a" />
+          </linearGradient>
+          <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stopColor="#ffcf7a" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#ffcf7a" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        <rect width="1440" height="900" fill="url(#busSky)" />
+        <circle cx="1080" cy="610" r="230" fill="url(#sunGlow)" />
+        <circle cx="1080" cy="610" r="70" fill="#ffb454" opacity="0.85" />
+
+        {/* road */}
+        <rect y="700" width="1440" height="200" fill="#0a0605" />
+        <g className="road-move">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <rect key={i} x={i * 160} y="795" width="80" height="8" rx="4" fill="#d97b2e" opacity="0.35" />
+          ))}
+        </g>
+
+        {/* bus silhouette, full of passengers */}
+        <g className="bus-bounce">
+          {/* roof luggage */}
+          <rect x="390" y="462" width="130" height="30" rx="8" fill="#120a06" />
+          <rect x="540" y="452" width="110" height="40" rx="8" fill="#0d0704" />
+          <rect x="670" y="466" width="140" height="26" rx="8" fill="#120a06" />
+          {/* body */}
+          <rect x="300" y="490" width="700" height="190" rx="26" fill="#150c07" />
+          <rect x="300" y="592" width="700" height="12" fill="#d97b2e" opacity="0.45" />
+          {/* windows with passengers */}
+          {[0, 1, 2, 3, 4].map((i) => (
+            <g key={i}>
+              <rect x={330 + i * 120} y="515" width="100" height="70" rx="10" fill="#ffcf7a" opacity="0.85" />
+              <circle cx={380 + i * 120} cy="560" r="15" fill="#150c07" />
+              <rect x={360 + i * 120} y="572" width="40" height="14" rx="7" fill="#150c07" />
+            </g>
+          ))}
+          {/* windshield + driver */}
+          <rect x="940" y="512" width="52" height="86" rx="10" fill="#ffcf7a" opacity="0.9" />
+          <circle cx="962" cy="556" r="14" fill="#150c07" />
+          {/* horn ok please */}
+          <text x="650" y="652" fill="#ffcf7a" opacity="0.55" fontSize="26" letterSpacing="10" textAnchor="middle" fontFamily="monospace">HORN OK PLEASE</text>
+          {/* wheels */}
+          <circle cx="430" cy="688" r="44" fill="#050302" />
+          <circle cx="430" cy="688" r="16" fill="#2a1a0e" />
+          <circle cx="870" cy="688" r="44" fill="#050302" />
+          <circle cx="870" cy="688" r="16" fill="#2a1a0e" />
+          {/* headlight */}
+          <circle cx="998" cy="640" r="8" fill="#ffd98a" />
+          <polygon points="1006,632 1180,600 1180,680 1006,648" fill="#ffd98a" opacity="0.15" />
+        </g>
+      </svg>
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_10%,transparent_40%,rgba(5,7,10,.8))]" />
+    </div>
+  );
+}
+
+function AlkaBackground() {
+  return (
+    <div className="fixed inset-0 h-[100dvh] w-screen overflow-hidden" aria-hidden>
+      <style>{`
+        @keyframes note-float { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: .8; } 100% { transform: translateY(-260px); opacity: 0; } }
+        @keyframes spot-sway { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+        .note { animation: note-float 6s linear infinite; }
+        .spot { transform-origin: 720px 0px; animation: spot-sway 8s ease-in-out infinite; }
+      `}</style>
+      <svg className="h-full w-full" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="alkaSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#0a0705" />
+            <stop offset="0.7" stopColor="#241408" />
+            <stop offset="1" stopColor="#120a05" />
+          </linearGradient>
+          <linearGradient id="spotGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ffd98a" stopOpacity="0.45" />
+            <stop offset="1" stopColor="#ffd98a" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        <rect width="1440" height="900" fill="url(#alkaSky)" />
+        <g className="spot"><polygon points="720,0 500,900 940,900" fill="url(#spotGrad)" /></g>
+        <ellipse cx="720" cy="880" rx="520" ry="60" fill="#000000" opacity="0.6" />
+
+        {/* singer silhouette with mic */}
+        <g fill="#050302">
+          <circle cx="720" cy="430" r="46" />
+          <circle cx="754" cy="400" r="20" />
+          <path d="M720 470 C 660 520 640 620 618 782 L 822 782 C 800 620 780 520 720 470 Z" />
+          <path d="M700 500 C 660 522 640 542 620 562 L 640 587 C 665 562 690 542 715 527 Z" />
+          <path d="M740 500 C 780 480 800 460 815 440 L 832 456 C 814 481 790 506 752 523 Z" />
+          <rect x="822" y="418" width="14" height="36" rx="6" transform="rotate(35 829 436)" />
+          <circle cx="844" cy="414" r="13" />
+        </g>
+
+        {/* floating notes */}
+        {[0, 1, 2, 3, 4].map((i) => (
+          <text key={i} className="note" x={600 + i * 60} y={520} fontSize={26 + (i % 3) * 10} fill="#ffd98a" opacity="0" style={{ animationDelay: `${i * 1.2}s` }}>♪</text>
+        ))}
+      </svg>
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_10%,transparent_40%,rgba(5,7,10,.8))]" />
+    </div>
+  );
 }
 
 /* ================================================================
@@ -321,10 +399,7 @@ function DewDrops() {
           key={d.id}
           className="absolute rounded-full"
           style={{
-            left: d.left,
-            top: '-10px',
-            width: d.size,
-            height: d.size,
+            left: d.left, top: '-10px', width: d.size, height: d.size,
             background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 60%, transparent 100%)',
             boxShadow: '0 0 4px rgba(255,255,255,0.2)',
             animation: `dewDrop ${d.duration} ${d.delay} linear infinite`,
