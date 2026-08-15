@@ -11,10 +11,15 @@ import Toast from '@/components/Toast';
 
 export default function Page() {
   useEffect(() => {
+    // Indian Bus (bollywood) auto-starts shuffled on open.
+    // Prefer resuming the last channel instead? Use:
+    // const ch = useStore.getState().currentChannelId || 'bollywood';
+    const ch = 'bollywood';
+
     youtubeManager.init().then(() => {
-      const ch = useStore.getState().currentChannelId || 'lofi';
-      youtubeManager.playChannel(ch); // tries autoplay; if the browser blocks it, one tap on the white ▶ unlocks audio
+      youtubeManager.playChannel(ch); // plays muted if browser blocks audio, unmutes on first click/keypress
     });
+
     const { syncKey, pullFromCloud } = useStore.getState();
     if (syncKey) pullFromCloud();
   }, []);
