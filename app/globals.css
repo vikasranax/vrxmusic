@@ -2,40 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
-html, body { margin: 0; background: #05070a; color: #e9eef3; }
-body { overflow: hidden; font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-* { box-sizing: border-box; }
-::selection { background: rgba(52,225,214,.25); }
-
-.glass {
-  background: rgba(8,11,16,.6);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,.08);
+:root {
+  --ink: #e9eef3;
+  --sub: #8a97a6;
+  --muted: #4a5568;
+  --accent: #34e1d6;
+  --canvas: #05070a;
+  --panel: rgba(10, 13, 18, 0.6);
+  --panel-strong: rgba(10, 13, 18, 0.85);
+  --line: rgba(255, 255, 255, 0.06);
 }
 
-input[type='range'] {
-  -webkit-appearance: none; appearance: none; height: 3px; border-radius: 3px;
-  background: rgba(255,255,255,.16); outline: none;
-}
-input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
-  background: #e9eef3; cursor: pointer; box-shadow: 0 0 0 4px rgba(255,255,255,.06);
-}
-input[type='range']::-moz-range-thumb {
-  width: 13px; height: 13px; border: none; border-radius: 50%;
-  background: #e9eef3; cursor: pointer;
+html, body {
+  background: #030405;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.thin-scroll::-webkit-scrollbar { width: 8px; }
-.thin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 8px; }
+/* ===== Scrollbar (thin, minimal) ===== */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.16); }
 
-@keyframes dewDrop {
-  0% { transform: translateY(-10px) scale(1); opacity: 0; }
-  15% { opacity: 0.7; }
-  85% { opacity: 0.5; }
-  100% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+/* ===== Grain overlay (subtle noise) ===== */
+.grain::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ===== Animations ===== */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50%       { transform: scale(1.8); opacity: 1; }
+}
+.animate-breathe { animation: breathe 3.2s ease-in-out infinite; }
+
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+@keyframes pump {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.14); }
+}
+.animate-pump { animation: pump 0.5s ease-in-out infinite; }
+
+/* ===== Typography helpers ===== */
+.font-display {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  letter-spacing: 0.13em;
+}
+.font-mono { font-family: 'IBM Plex Mono', monospace; }
+.uppercase-tight {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ===== Range input (seek / volume) ===== */
+input[type="range"].seek {
+  -webkit-appearance: none; appearance: none;
+  height: 2px; background: rgba(255,255,255,.15); border-radius: 1px;
+}
+input[type="range"].seek::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 8px rgba(52, 225, 214, 0.5);
+}
+input[type="range"].seek::-moz-range-thumb {
+  width: 10px; height: 10px; border: 0; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
 }

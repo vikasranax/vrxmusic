@@ -24,10 +24,10 @@ function ImageBackground({ url }) {
 function BusBackground() {
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#1a1208]">
-      {/* Realistic AI bus photo (public/bus.jpg) with slow cinematic drift */}
+      {/* Realistic AI bus photo (public/bus.png) with slow cinematic drift */}
       <div
         className="absolute inset-0 bus-kenburns bg-cover bg-center"
-        style={{ backgroundImage: "url('/bus.jpg')" }}
+        style={{ backgroundImage: "url('/bus.png')" }}
       />
       {/* Gradient veil so foreground UI stays readable */}
       <div

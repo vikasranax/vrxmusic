@@ -1,20 +1,22 @@
 'use client';
-import { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { useStore } from '@/lib/store';
 
 export default function Toast() {
-  const toast = useStore((s) => s.toast);
-  const setToast = useStore((s) => s.setToast);
-  useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 3200); return () => clearTimeout(t); } }, [toast]);
+  const msg = useStore((s) => s.toast);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!msg) { setVisible(false); return; }
+    setVisible(true);
+    const t = setTimeout(() => setVisible(false), 2400);
+    return () => clearTimeout(t);
+  }, [msg]);
+
+  if (!visible) return null;
   return (
-    <AnimatePresence>
-      {toast && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-          className="glass fixed bottom-28 left-1/2 z-[60] -translate-x-1/2 rounded-full px-5 py-2.5 text-sm text-ink">
-          {toast}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full bg-panel border border-white/[0.08] backdrop-blur-xl text-[11px] uppercase tracking-[0.08em] text-sub">
+      {msg}
+    </div>
   );
 }
